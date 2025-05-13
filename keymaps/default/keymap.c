@@ -103,10 +103,6 @@ enum custom_keycode { _SOCD = SAFE_RANGE, _DYMC };
 
 #define LY_EXTN MO(_EXTN)
 #define GET_ORIG_KEY(record) pgm_read_word(&keymaps[_BASE][record->event.key.row][record->event.key.col])
-#define DEF_DUAL_KEY(keycode, event) \
-    case keycode:                    \
-        event;                       \
-        break
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -150,11 +146,29 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 socd_cleaner_t socd_v = {{{KC_W}, {KC_S}}, SOCD_CLEANER_NEUTRAL};
 socd_cleaner_t socd_h = {{{KC_A}, {KC_D}}, SOCD_CLEANER_LAST};
 
-static bool socd_cleaner_enabled = false;
-static bool dynamic_macro_active = false;
+static bool    socd_cleaner_enabled = false;
+static uint8_t dynamic_macro_status = false;
 
 bool dynamic_macro_record_start_user(int8_t direction) {
-    return dynamic_macro_active = true;
+    if (direction == 1) {
+        dynamic_macro_status |= 1;
+        dynamic_macro_status &= ~(1 << 1);
+    } else {
+        dynamic_macro_status |= (1 << 2);
+        dynamic_macro_status &= ~(1 << 3);
+    }
+    return true;
+}
+
+bool dynamic_macro_record_end_user(int8_t direction) {
+    if (direction == 1) {
+        dynamic_macro_status |= (1 << 1);
+        dynamic_macro_status &= ~1;
+    } else {
+        dynamic_macro_status |= (1 << 3);
+        dynamic_macro_status &= ~(1 << 2);
+    }
+    return true;
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
@@ -170,9 +184,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         case _DYMC:
             if (record->event.pressed) {
                 switch (GET_ORIG_KEY(record)) {
-                    DEF_DUAL_KEY(KC_1, tap_code16(dynamic_macro_active ? DM_PLY1 : DM_REC1));
-                    DEF_DUAL_KEY(KC_2, tap_code16(dynamic_macro_active ? DM_PLY2 : DM_REC2));
-                    DEF_DUAL_KEY(KC_C, dynamic_macro_active = false);
+                    case KC_1:
+                        if (dynamic_macro_status & (1 << 1))
+                            tap_code16(DM_PLY1);
+                        else
+                            tap_code16(DM_REC1);
+                        break;
+                    case KC_2:
+                        if (dynamic_macro_status & (1 << 3))
+                            tap_code16(DM_PLY2);
+                        else
+                            tap_code16(DM_REC2);
+                        break;
+                    default:
+                        dynamic_macro_status = false;
                 }
             }
             break;
