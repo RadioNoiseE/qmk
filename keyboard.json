@@ -4,11 +4,11 @@
     "maintainer": "Jing Huang",
     "bootloader": "atmel-dfu",
     "features": {
-        "bootmagic": false,
+        "bootmagic": true,
         "command": false,
         "console": false,
-        "extrakey": true,
-        "mousekey": true,
+        "extrakey": false,
+        "mousekey": false,
         "nkro": true
     },
     "processor": "atmega32u2",
