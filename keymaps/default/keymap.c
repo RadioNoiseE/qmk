@@ -16,7 +16,7 @@
 
 #include QMK_KEYBOARD_H
 
-/* Implementation of Simultaneous Opposing Cardinal Directions (SOCD) filtering.
+/* Simultaneous Opposing Cardinal Directions (SOCD) filtering.
  * Based on Pascal Getreuer's implementation.
  */
 
@@ -46,11 +46,10 @@ typedef struct {
 } socd_cleaner_t;
 
 static void update_key(uint8_t keycode, bool press) {
-    if (press) {
+    if (press)
         add_key(keycode);
-    } else {
+    else
         del_key(keycode);
-    }
 }
 
 bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t* state) {
@@ -100,8 +99,14 @@ bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t*
  */
 
 enum layer_literal { _BASE, _EXTN };
+enum custom_keycode { _SOCD = SAFE_RANGE, _DYMC };
 
-#define KC_EXTN MO(_EXTN)
+#define LY_EXTN MO(_EXTN)
+#define GET_ORIG_KEY(record) pgm_read_word(&keymaps[0][record->event.key.row][record->event.key.col])
+#define DEF_DUAL_KEY(keycode, event) \
+    case keycode:                    \
+        event;                       \
+        break
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -128,15 +133,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
             KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSLS,    KC_DEL,  KC_END,  KC_PGDN,
             KC_CAPS, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,
             KC_LSFT,          KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,          KC_RSFT,             KC_UP,
-            KC_LCTL, KC_LGUI, KC_LALT,                            KC_SPC,                             KC_RALT, KC_EXTN, KC_APP,  KC_RCTL,    KC_LEFT, KC_DOWN, KC_RGHT
+            KC_LCTL, KC_LGUI, KC_LALT,                            KC_SPC,                             KC_RALT, LY_EXTN, KC_APP,  KC_RCTL,    KC_LEFT, KC_DOWN, KC_RGHT
     ),
     [_EXTN] = LAYOUT_tkl_ansi(
             KC_TRNS,          KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,
 
-            KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,
-            KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,
-            KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,          KC_TRNS,
-            KC_TRNS,          KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,          KC_TRNS,             KC_TRNS,
+            KC_TRNS, _DYMC,   _DYMC,   KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,
+            KC_TRNS, KC_TRNS, KC_TRNS, EE_CLR,  QK_BOOT, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,
+            KC_TRNS, KC_TRNS, _SOCD,   KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, QK_LOCK, KC_TRNS, KC_TRNS,          KC_TRNS,
+            KC_TRNS,          KC_TRNS, KC_TRNS, _DYMC,   KC_TRNS, QK_RBT,  NK_TOGG, DM_RSTP, KC_TRNS, KC_TRNS, KC_TRNS,          KC_TRNS,             KC_TRNS,
             KC_TRNS, KC_TRNS, KC_TRNS,                            KC_TRNS,                            KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS
     ),
 };
@@ -145,12 +150,33 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 socd_cleaner_t socd_v = {{{KC_W}, {KC_S}}, SOCD_CLEANER_NEUTRAL};
 socd_cleaner_t socd_h = {{{KC_A}, {KC_D}}, SOCD_CLEANER_LAST};
 
-static bool socd_cleaner_enabled = true;
+static bool socd_cleaner_enabled = false;
+static bool dynamic_macro_active = false;
+
+bool dynamic_macro_record_start_user(int8_t direction) {
+    return dynamic_macro_active = true;
+}
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     if (socd_cleaner_enabled) {
         if (!process_socd_cleaner(keycode, record, &socd_v)) return false;
         if (!process_socd_cleaner(keycode, record, &socd_h)) return false;
     }
+
+    switch (keycode) {
+        case _SOCD:
+            if (record->event.pressed) socd_cleaner_enabled ^= socd_cleaner_enabled;
+            break;
+        case _DYMC:
+            if (record->event.pressed) {
+                switch (GET_ORIG_KEY(record)) {
+                    DEF_DUAL_KEY(KC_1, tap_code16(dynamic_macro_active ? DM_PLY1 : DM_REC1));
+                    DEF_DUAL_KEY(KC_2, tap_code16(dynamic_macro_active ? DM_PLY2 : DM_REC2));
+                    DEF_DUAL_KEY(KC_C, dynamic_macro_active = false);
+                }
+            }
+            break;
+    }
+
     return true;
 }
