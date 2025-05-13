@@ -53,7 +53,6 @@ bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t*
         // If the current event is a press, then release the opposing key.
         // Otherwise if this is a release, then press the opposing key.
         update_key(state->keys[opposing], !state->held[i]);
-        break;
     }
     return true; // Continue default handling to press/release current key.
 }
