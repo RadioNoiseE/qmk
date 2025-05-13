@@ -835,10 +835,14 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
 #ifndef NO_PRINT
     matrix_print_stats();
 #endif
+#ifdef RAW_ENABLE
     if (keyboard_scan_enabled) {
         matrix_scan_raw(current_matrix);
     } else {
         memset(current_matrix, 0, sizeof(matrix_row_t) * MATRIX_ROWS);
     }
+#else
+    matrix_scan_raw(current_matrix);
+#endif
     return matrix_has_it_changed(current_matrix);
 }
