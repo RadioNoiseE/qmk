@@ -102,7 +102,7 @@ enum layer_literal { _BASE, _EXTN };
 enum custom_keycode { _SOCD = SAFE_RANGE, _DYMC };
 
 #define LY_EXTN MO(_EXTN)
-#define GET_ORIG_KEY(record) pgm_read_word(&keymaps[0][record->event.key.row][record->event.key.col])
+#define GET_ORIG_KEY(record) pgm_read_word(&keymaps[_BASE][record->event.key.row][record->event.key.col])
 #define DEF_DUAL_KEY(keycode, event) \
     case keycode:                    \
         event;                       \
