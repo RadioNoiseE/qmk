@@ -16,6 +16,8 @@
 
 #include "beamspring.h"
 
+// Pandrew util assumes this to be ``wcass.c''.
+// But since we dropped the raw hid support we don't care about it.
 const char PROGMEM KEYBOARD_FILENAME[] = __FILE__; // used by util_comm
 
 void keyboard_post_init_kb(void) {
