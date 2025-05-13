@@ -1,8 +1,67 @@
-// Copyright 2023 QMK
-// SPDX-License-Identifier: GPL-2.0-or-later
+/* Copyright 2020 Jing Huang
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include QMK_KEYBOARD_H
 
+/* Implementation of Simultaneous Opposing Cardinal Directions (SOCD) filtering.
+ * Based on Pascal Getreuer's implementation.
+ */
+
+typedef struct {
+    uint8_t keys[2];    // Basic keycodes for the two opposing keys.
+    uint8_t resolution; // Resolution strategy.
+    bool    held[2];    // Tracks which keys are physically held.
+} socd_cleaner_t;
+
+bool socd_cleaner_enabled = true;
+
+static void update_key(uint8_t keycode, bool press) {
+    if (press) {
+        add_key(keycode);
+    } else {
+        del_key(keycode);
+    }
+}
+
+bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t* state) {
+    if (!socd_cleaner_enabled || !state->resolution || (keycode != state->keys[0] && keycode != state->keys[1])) {
+        return true; // Quick return when disabled or on unrelated events.
+    }
+    // The current event corresponds to index `i`, 0 or 1, in the SOCD key pair.
+    const uint8_t i        = (keycode == state->keys[1]);
+    const uint8_t opposing = i ^ 1; // Index of the opposing key.
+
+    // Track which keys are physically held (vs. keys in the report).
+    state->held[i] = record->event.pressed;
+
+    // Perform SOCD resolution for events where the opposing key is held.
+    if (state->held[opposing]) {
+        // Last input priority with reactivation.
+        // If the current event is a press, then release the opposing key.
+        // Otherwise if this is a release, then press the opposing key.
+        update_key(state->keys[opposing], !state->held[i]);
+        break;
+    }
+    return true; // Continue default handling to press/release current key.
+}
+
+/* Definition and configuration of the actual keymap.
+ */
+
+// clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
      * ┌───┐   ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -30,3 +89,4 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_LCTL, KC_LGUI, KC_LALT,                            KC_SPC,                             KC_RALT, KC_RGUI, KC_APP,  KC_RCTL,    KC_LEFT, KC_DOWN, KC_RGHT
     )
 };
+// clang-format on
