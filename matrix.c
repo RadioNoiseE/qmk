@@ -685,6 +685,11 @@ void real_keyboard_init_basic(void) {
     dac_write_threshold(CAPSENSE_HARDCODED_THRESHOLD);
     dac_write_threshold(CAPSENSE_HARDCODED_THRESHOLD);
 #endif
+#ifdef USING_SOLENOID_ENABLE_PIN
+    // This must be defined in config.h if you are using and xwhatsit type solenoid
+    setPinOutput(USING_SOLENOID_ENABLE_PIN);
+    writePin(USING_SOLENOID_ENABLE_PIN, 1);
+#endif
 #if defined(CONTROLLER_IS_THROUGH_HOLE_BEAMSPRING) || defined(CONTROLLER_IS_THROUGH_HOLE_MODEL_F)
     // Disable on-board leds.
     setPinOutput(D5);
