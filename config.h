@@ -188,11 +188,6 @@
 // #define NO_ACTION_TAPPING
 // #define NO_ACTION_ONESHOT
 
-#ifndef LINK_TIME_OPTIMIZATION_ENABLE
-#    define NO_ACTION_MACRO
-#    define NO_ACTION_FUNCTION
-#endif
-
 /*
  * MIDI options
  */
@@ -264,7 +259,6 @@
 // #define CAPSENSE_CAL_ENABLED 0
 // #define CAPSENSE_CAL_DEBUG 1
 #define CAPSENSE_CAL_DEBUG 0
-// #define CAPSENSE_CAL_AUTOSAVE 0
 #define CAPSENSE_CAL_INIT_REPS 16
 #define CAPSENSE_CAL_EACHKEY_REPS 16
 #define CAPSENSE_CAL_BINS 15
@@ -278,17 +272,18 @@
 
 // By default we set up for support of xwhatsit's solenoid driver board.
 // Comment out HAPTIC_ENABLE_PIN if you don't have an enable pin:
-#define HAPTIC_ENABLE_PIN B7
+// #define HAPTIC_ENABLE_PIN B7
 // We disable haptic feedbeck during USB low power conditions:
-#define HAPTIC_OFF_IN_LOW_POWER 1
+// #define HAPTIC_OFF_IN_LOW_POWER 1
 // Change this if you are using a different pin for the solenoid:
-#define SOLENOID_PIN B6
+// #define SOLENOID_PIN B6
 // If you are not using a solenoid then comment out the above, and also in rules.mk, remove "HAPTIC_ENABLE += SOLENOID"
 // You can also tune the following for your solenoid:
-#define SOLENOID_DEFAULT_DWELL 20
-#define SOLENOID_MIN_DWELL 4
+// #define SOLENOID_DEFAULT_DWELL 20
+// #define SOLENOID_MIN_DWELL 4
 // #define SOLENOID_MAX_DWELL 100
-#define NO_HAPTIC_MOD
+// #define NO_HAPTIC_MOD
+// #define HAPTIC_EXCLUSION_KEYS 1
 
 // If the lock lights are not used, then please don't define the below pins,
 // or leave them set as unused pins:
@@ -303,9 +298,9 @@
 // assignments are disabled by default.
 // Instead the more common Num Lock and Caps Lock are assigned the following
 // way by default, and this can be used in combination with the solenoid:
-#define LED_NUM_LOCK_PIN B5
-#define LED_CAPS_LOCK_PIN B4
-#define LED_SCROLL_LOCK_PIN B3
+// #define LED_NUM_LOCK_PIN B5
+// #define LED_CAPS_LOCK_PIN B4
+// #define LED_SCROLL_LOCK_PIN B3
 
 // Uncomment below if the leds are on when the pin is driving zero:
 // #define LED_NUM_LOCK_ACTIVE_LOW
