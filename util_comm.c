@@ -15,7 +15,9 @@
  */
 
 #include "quantum.h"
-#include "raw_hid.h"
+#ifdef RAW_ENABLE
+#    include "raw_hid.h"
+#endif
 #include "util_comm.h"
 #include "matrix_manipulate.h"
 #include <string.h>

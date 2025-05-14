@@ -252,7 +252,10 @@
 #        define CAPSENSE_READ_ROWS_PIN_2 _SFR_IO_ADDR(PIND)
 #        define CAPSENSE_READ_ROWS_PIN_3 _SFR_IO_ADDR(PINB)
 #        define CAPSENSE_READ_ROWS_PIN_4 _SFR_IO_ADDR(PINF)
-#        define CAPSENSE_READ_ROWS_ASM_INSTRUCTIONS "in %[dest_row_1], %[ioreg_row_1]\n\tin %[dest_row_2], %[ioreg_row_2]\n\tin %[dest_row_3], %[ioreg_row_3]\n\tin %[dest_row_4], %[ioreg_row_4]"
+#        define CAPSENSE_READ_ROWS_ASM_INSTRUCTIONS                                    \
+            "in %[dest_row_1], %[ioreg_row_1]\n\tin %[dest_row_2], "                   \
+            "%[ioreg_row_2]\n\tin %[dest_row_3], %[ioreg_row_3]\n\tin %[dest_row_4], " \
+            "%[ioreg_row_4]"
 #        define CAPSENSE_READ_ROWS_STORE_TO_ARRAY_INSTRUCTIONS \
             "st %a[arr]+, %[dest_row_1]"                       \
             "\n\t"                                             \
