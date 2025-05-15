@@ -27,10 +27,10 @@ enum socd_cleaner_resolution {
     SOCD_CLEANER_LAST,
     // Neutral resolution. When both keys are pressed, they cancel.
     SOCD_CLEANER_NEUTRAL,
-    // Key 0 always wins.
-    SOCD_CLEANER_0_WINS,
-    // Key 1 always wins.
-    SOCD_CLEANER_1_WINS,
+    // Former key always wins.
+    SOCD_CLEANER_FORMER,
+    // Latter key always wins.
+    SOCD_CLEANER_LATTER,
     // Sentinel to count the number of resolution strategies.
     SOCD_CLEANER_NUM_RESOLUTIONS,
 };
@@ -80,9 +80,9 @@ bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t*
                 send_keyboard_report();
                 return false; // Skip default handling.
 
-            case SOCD_CLEANER_0_WINS: // Key 0 wins.
-            case SOCD_CLEANER_1_WINS: // Key 1 wins.
-                if (opposing == (state->resolution - SOCD_CLEANER_0_WINS)) {
+            case SOCD_CLEANER_FORMER: // Former wins.
+            case SOCD_CLEANER_LATTER: // Latter wins.
+                if (opposing == (state->resolution - SOCD_CLEANER_FORMER)) {
                     // The opposing key is the winner. The current key has no effect.
                     return false; // Skip default handling.
                 } else {
