@@ -151,57 +151,65 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 socd_cleaner_t socd_v = {{{KC_W}, {KC_S}}, SOCD_CLEANER_NEUTRAL};
 socd_cleaner_t socd_h = {{{KC_A}, {KC_D}}, SOCD_CLEANER_LAST};
 
-static bool    socd_cleaner_enabled = false;
-static uint8_t dynamic_macro_status = false;
+static uint8_t keyboard_status;
+
+#define SOCD_TG (1 << 0)
+#define DM_RNG1 (1 << 1)
+#define DM_RED1 (1 << 2)
+#define DM_RNG2 (1 << 3)
+#define DM_RED2 (1 << 4)
 
 bool dynamic_macro_record_start_user(int8_t direction) {
     if (direction == 1) {
-        dynamic_macro_status |= 1;
-        dynamic_macro_status &= ~(1 << 1);
+        keyboard_status |= DM_RNG1;
+        keyboard_status &= ~DM_RED1;
     } else {
-        dynamic_macro_status |= (1 << 2);
-        dynamic_macro_status &= ~(1 << 3);
+        keyboard_status |= DM_RNG2;
+        keyboard_status &= ~DM_RED2;
     }
     return true;
 }
 
 bool dynamic_macro_record_end_user(int8_t direction) {
     if (direction == 1) {
-        dynamic_macro_status |= (1 << 1);
-        dynamic_macro_status &= ~1;
+        keyboard_status |= DM_RED1;
+        keyboard_status &= ~DM_RNG1;
     } else {
-        dynamic_macro_status |= (1 << 3);
-        dynamic_macro_status &= ~(1 << 2);
+        keyboard_status |= DM_RED2;
+        keyboard_status &= ~DM_RNG2;
     }
     return true;
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
-    if (socd_cleaner_enabled) {
+    if (keyboard_status & SOCD_TG) {
         MAY_WANT_OUT(process_socd_cleaner(keycode, record, &socd_v));
         MAY_WANT_OUT(process_socd_cleaner(keycode, record, &socd_h));
     }
 
     switch (keycode) {
         case _SOCD:
-            if (record->event.pressed) socd_cleaner_enabled ^= true;
+            if (record->event.pressed) keyboard_status ^= SOCD_TG;
             break;
         case _DYMC:
             switch (GET_ORIG_KEY(record)) {
                 case KC_1:
-                    if (dynamic_macro_status & (1 << 1))
+                    if (keyboard_status & DM_RED1)
                         MAY_WANT_OUT(process_dynamic_macro(DM_PLY1, record));
                     else
                         MAY_WANT_OUT(process_dynamic_macro(DM_REC1, record));
                     break;
                 case KC_2:
-                    if (dynamic_macro_status & (1 << 3))
+                    if (keyboard_status & DM_RED2)
                         MAY_WANT_OUT(process_dynamic_macro(DM_PLY2, record));
                     else
                         MAY_WANT_OUT(process_dynamic_macro(DM_REC2, record));
                     break;
                 default:
-                    dynamic_macro_status = false;
+                    if (keyboard_status & (DM_RNG1 | DM_RNG2))
+                        MAY_WANT_OUT(process_dynamic_macro(DM_RSTP, record));
+                    else if (record->event.pressed)
+                        keyboard_status &= ~(DM_RNG1 | DM_RED1 | DM_RNG2 | DM_RED2);
             }
             break;
     }
