@@ -1,4 +1,4 @@
-# Keyboard firmware for Atmel AVR based BSSK R1
+## Keyboard firmware for Atmel AVR based BSSK R1
 
 * Keyboard Maintainer: [Jing Huang](https://github.com/RadioNoiseE)
 * Hardware Supported: BSSK R1 Keyboard
@@ -6,19 +6,9 @@
 
 This is an attempt to port the wcass firmware to the latest QMK.
 
-Make example for this keyboard (after setting up your build environment):
+Note that magic boot is currently problematic since it functions in
+the early stages and our own matrix scan override hasn't been
+activated yet.
 
-    make beamspring:default
-
-Flashing example for this keyboard:
-
-    make beamspring:default:flash
-
-See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information.
-
-## Bootloader
-
-Enter the bootloader in 2 ways:
-
-* **Bootmagic reset**: Hold down the key at (0,0) in the matrix and plug in the keyboard
-* **Keycode in layout**: Press the key mapped to `QK_BOOT`
+Also the raw hid isn't working and there is no plan at the time to fix
+it.
