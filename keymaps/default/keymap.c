@@ -45,13 +45,6 @@ typedef struct {
     uint8_t  resolution; // Resolution strategy.
 } socd_cleaner_t;
 
-static void update_key(uint8_t keycode, bool press) {
-    if (press)
-        add_key(keycode);
-    else
-        del_key(keycode);
-}
-
 bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t* state) {
     if (!state->resolution || !(keycode == state->keys[0].code || keycode == state->keys[1].code)) {
         return true; // Quick return when disabled or on unrelated events.
@@ -69,13 +62,19 @@ bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t*
             case SOCD_CLEANER_LAST: // Last input priority with reactivation.
                 // If the current event is a press, then release the opposing key.
                 // Otherwise if this is a release, then press the opposing key.
-                update_key(state->keys[opposing].code, !state->keys[i].held);
+                if (state->keys[i].held)
+                    del_key(state->keys[opposing].code);
+                else
+                    add_key(state->keys[opposing].code);
                 break;
 
             case SOCD_CLEANER_NEUTRAL: // Neutral resolution.
                 // Same logic as SOCD_CLEANER_LAST, but skip default handling so that
                 // the current key has no effect while the opposing key is held.
-                update_key(state->keys[opposing].code, !state->keys[i].held);
+                if (state->keys[i].held)
+                    del_key(state->keys[opposing].code);
+                else
+                    add_key(state->keys[opposing].code);
                 // Send updated report (normally, default handling would do this).
                 send_keyboard_report();
                 return false; // Skip default handling.
@@ -87,7 +86,10 @@ bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t*
                     return false; // Skip default handling.
                 } else {
                     // The current key is the winner. Update logic is same as above.
-                    update_key(state->keys[opposing].code, !state->keys[i].held);
+                    if (state->keys[i].held)
+                        del_key(state->keys[opposing].code);
+                    else
+                        add_key(state->keys[opposing].code);
                 }
                 break;
         }
