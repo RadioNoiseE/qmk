@@ -141,7 +141,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
             KC_TRNS, _DYMC,   _DYMC,   KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,
             KC_TRNS, KC_TRNS, KC_TRNS, EE_CLR,  QK_BOOT, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,
             KC_TRNS, KC_TRNS, _SOCD,   KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, QK_LOCK, KC_TRNS, KC_TRNS,          KC_TRNS,
-            KC_TRNS,          KC_TRNS, KC_TRNS, _DYMC,   KC_TRNS, QK_RBT,  NK_TOGG, DM_RSTP, KC_TRNS, KC_TRNS, KC_TRNS,          KC_TRNS,             KC_TRNS,
+            KC_TRNS,          KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, QK_RBT,  NK_TOGG, _DYMC,   KC_TRNS, KC_TRNS, KC_TRNS,          KC_TRNS,             KC_TRNS,
             KC_TRNS, KC_TRNS, KC_TRNS,                            KC_TRNS,                            KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS
     ),
 };
