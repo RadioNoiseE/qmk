@@ -98,16 +98,44 @@ bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t*
 }
 
 /* Definition and configuration of the actual keymap.
+ * Speed keys are defined based on LdBeth's approach.
  */
 
 enum layer_literal { _BASE, _EXTN };
 enum custom_keycode { _SOCD = SAFE_RANGE, _DYMC };
 
-// clang-format off
-
 #define LY_EXTN MO(_EXTN)
 #define GET_ORIG_KEY(record) keymap_key_to_keycode(_BASE, record->event.key)
-#define MAY_WANT_OUT(process) do { if (!process) return false; } while (false)
+#define MAY_WANT_OUT(process)       \
+    do {                            \
+        if (!process) return false; \
+    } while (false)
+#define DEF_ESPD_KEY(key)                                                \
+    case key: {                                                          \
+        static deferred_token token = INVALID_DEFERRED_TOKEN;            \
+        static uint8_t        repeat_count;                              \
+        if (!record->event.pressed) {                                    \
+            cancel_deferred_exec(token);                                 \
+            token = INVALID_DEFERRED_TOKEN;                              \
+        } else if (!token) {                                             \
+            tap_code(key);                                               \
+            repeat_count = 0;                                            \
+            uint32_t key##_C(uint32_t trigger_time, void* cb_arg) {      \
+                tap_code(key);                                           \
+                if (repeat_count < sizeof(repeat_delay)) ++repeat_count; \
+                return pgm_read_byte(repeat_delay + repeat_count - 1);   \
+            }                                                            \
+            token = defer_exec(300, key##_C, NULL);                      \
+        }                                                                \
+    }                                                                    \
+        return false
+
+// clang-format off
+
+const uint8_t repeat_delay[] PROGMEM = {
+  99, 79, 65, 57, 49, 43, 40, 35, 33, 30, 28, 26, 25, 23, 22, 20,
+  20, 19, 18, 17, 16, 15, 15, 14, 14, 13, 13, 12, 12, 11, 11, 10
+};
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
@@ -188,6 +216,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     }
 
     switch (keycode) {
+        DEF_ESPD_KEY(KC_BSPC);
+        DEF_ESPD_KEY(KC_ENT);
         case _SOCD:
             if (record->event.pressed) keyboard_status ^= SOCD_TG;
             break;
