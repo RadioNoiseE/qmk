@@ -103,10 +103,12 @@ bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t*
 enum layer_literal { _BASE, _EXTN };
 enum custom_keycode { _SOCD = SAFE_RANGE, _DYMC };
 
-#define LY_EXTN MO(_EXTN)
-#define GET_ORIG_KEY(record) pgm_read_word(&keymaps[_BASE][record->event.key.row][record->event.key.col])
-
 // clang-format off
+
+#define LY_EXTN MO(_EXTN)
+#define GET_ORIG_KEY(record) keymap_key_to_keycode(_BASE, record->event.key)
+#define MAY_WANT_OUT(process) if (!process) return false
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
      * ┌───┐   ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -143,6 +145,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
             KC_TRNS, KC_TRNS, KC_TRNS,                            KC_TRNS,                            KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS
     ),
 };
+
 // clang-format on
 
 socd_cleaner_t socd_v = {{{KC_W}, {KC_S}}, SOCD_CLEANER_NEUTRAL};
@@ -175,8 +178,8 @@ bool dynamic_macro_record_end_user(int8_t direction) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     if (socd_cleaner_enabled) {
-        if (!process_socd_cleaner(keycode, record, &socd_v)) return false;
-        if (!process_socd_cleaner(keycode, record, &socd_h)) return false;
+        MAY_WANT_OUT(process_socd_cleaner(keycode, record, &socd_v));
+        MAY_WANT_OUT(process_socd_cleaner(keycode, record, &socd_h));
     }
 
     switch (keycode) {
@@ -184,23 +187,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
             if (record->event.pressed) socd_cleaner_enabled ^= true;
             break;
         case _DYMC:
-            if (record->event.pressed) {
-                switch (GET_ORIG_KEY(record)) {
-                    case KC_1:
-                        if (dynamic_macro_status & (1 << 1))
-                            tap_code16(DM_PLY1);
-                        else
-                            tap_code16(DM_REC1);
-                        break;
-                    case KC_2:
-                        if (dynamic_macro_status & (1 << 3))
-                            tap_code16(DM_PLY2);
-                        else
-                            tap_code16(DM_REC2);
-                        break;
-                    default:
-                        dynamic_macro_status = false;
-                }
+            switch (GET_ORIG_KEY(record)) {
+                case KC_1:
+                    if (dynamic_macro_status & (1 << 1))
+                        MAY_WANT_OUT(process_dynamic_macro(DM_PLY1, record));
+                    else
+                        MAY_WANT_OUT(process_dynamic_macro(DM_REC1, record));
+                    break;
+                case KC_2:
+                    if (dynamic_macro_status & (1 << 3))
+                        MAY_WANT_OUT(process_dynamic_macro(DM_PLY2, record));
+                    else
+                        MAY_WANT_OUT(process_dynamic_macro(DM_REC2, record));
+                    break;
+                default:
+                    dynamic_macro_status = false;
             }
             break;
     }
