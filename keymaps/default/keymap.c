@@ -107,7 +107,7 @@ enum custom_keycode { _SOCD = SAFE_RANGE, _DYMC };
 
 #define LY_EXTN MO(_EXTN)
 #define GET_ORIG_KEY(record) keymap_key_to_keycode(_BASE, record->event.key)
-#define MAY_WANT_OUT(process) if (!process) return false
+#define MAY_WANT_OUT(process) do { if (!process) return false } while (false)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
