@@ -18,7 +18,7 @@
 
 // safe bet for atmega32u2
 #define DYNAMIC_MACRO_NO_NESTING
-#define DYNAMIC_MACRO_SIZE 42
+#define DYNAMIC_MACRO_SIZE 32
 
 // force nkey rollover
 #define FORCE_NKRO
