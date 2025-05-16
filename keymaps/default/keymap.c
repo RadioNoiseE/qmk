@@ -219,18 +219,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         DEF_ESPD_KEY(KC_BSPC);
         DEF_ESPD_KEY(KC_ENT);
         case _SOCD:
-            if (record->event.pressed) keyboard_status ^= SOCD_TG;
+            if (!record->event.pressed) keyboard_status ^= SOCD_TG;
             break;
         case _DYMC:
             switch (GET_ORIG_KEY(record)) {
                 case KC_1:
-                    if (keyboard_status & DM_RED1)
+                    if (keyboard_status & DM_RNG1)
+                        MAY_WANT_OUT(process_dynamic_macro(DM_RSTP, record));
+                    else if (keyboard_status & DM_RED1)
                         MAY_WANT_OUT(process_dynamic_macro(DM_PLY1, record));
                     else
                         MAY_WANT_OUT(process_dynamic_macro(DM_REC1, record));
                     break;
                 case KC_2:
-                    if (keyboard_status & DM_RED2)
+                    if (keyboard_status & DM_RNG2)
+                        MAY_WANT_OUT(process_dynamic_macro(DM_RSTP, record));
+                    else if (keyboard_status & DM_RED2)
                         MAY_WANT_OUT(process_dynamic_macro(DM_PLY2, record));
                     else
                         MAY_WANT_OUT(process_dynamic_macro(DM_REC2, record));
@@ -238,7 +242,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
                 default:
                     if (keyboard_status & (DM_RNG1 | DM_RNG2))
                         MAY_WANT_OUT(process_dynamic_macro(DM_RSTP, record));
-                    else if (record->event.pressed)
+                    else if (!record->event.pressed)
                         keyboard_status &= ~(DM_RNG1 | DM_RED1 | DM_RNG2 | DM_RED2);
             }
             break;
