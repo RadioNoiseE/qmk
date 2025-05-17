@@ -21,71 +21,54 @@
  */
 
 enum socd_cleaner_resolution {
-    // Disable SOCD filtering for this key pair.
     SOCD_CLEANER_OFF,
-    // Last input priority with reactivation.
     SOCD_CLEANER_LAST,
-    // Neutral resolution. When both keys are pressed, they cancel.
     SOCD_CLEANER_NEUTRAL,
-    // Former key always wins.
     SOCD_CLEANER_FORMER,
-    // Latter key always wins.
     SOCD_CLEANER_LATTER,
-    // Sentinel to count the number of resolution strategies.
     SOCD_CLEANER_NUM_RESOLUTIONS,
 };
 
 typedef struct {
-    uint8_t code : 7; // Basic keycodes for the two opposing keys.
-    bool    held : 1; // Tracks which keys are physically held.
+    uint8_t code : 7;
+    bool    held : 1;
 } socd_key;
 
 typedef struct {
     socd_key keys[2];
-    uint8_t  resolution; // Resolution strategy.
+    uint8_t  resolution;
 } socd_cleaner_t;
 
 bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t* state) {
     if (!state->resolution || !(keycode == state->keys[0].code || keycode == state->keys[1].code)) {
-        return true; // Quick return when disabled or on unrelated events.
+        return true;
     }
-    // The current event corresponds to index `i`, 0 or 1, in the SOCD key pair.
-    const uint8_t i        = (keycode == state->keys[1].code);
-    const uint8_t opposing = i ^ 1; // Index of the opposing key.
 
-    // Track which keys are physically held (vs. keys in the report).
+    const uint8_t i        = (keycode == state->keys[1].code);
+    const uint8_t opposing = i ^ 1;
+
     state->keys[i].held = record->event.pressed;
 
-    // Perform SOCD resolution for events where the opposing key is held.
     if (state->keys[opposing].held) {
         switch (state->resolution) {
-            case SOCD_CLEANER_LAST: // Last input priority with reactivation.
-                // If the current event is a press, then release the opposing key.
-                // Otherwise if this is a release, then press the opposing key.
+            case SOCD_CLEANER_LAST:
                 if (state->keys[i].held)
                     del_key(state->keys[opposing].code);
                 else
                     add_key(state->keys[opposing].code);
                 break;
-
-            case SOCD_CLEANER_NEUTRAL: // Neutral resolution.
-                // Same logic as SOCD_CLEANER_LAST, but skip default handling so that
-                // the current key has no effect while the opposing key is held.
+            case SOCD_CLEANER_NEUTRAL:
                 if (state->keys[i].held)
                     del_key(state->keys[opposing].code);
                 else
                     add_key(state->keys[opposing].code);
-                // Send updated report (normally, default handling would do this).
                 send_keyboard_report();
-                return false; // Skip default handling.
-
-            case SOCD_CLEANER_FORMER: // Former wins.
-            case SOCD_CLEANER_LATTER: // Latter wins.
+                return false;
+            case SOCD_CLEANER_FORMER:
+            case SOCD_CLEANER_LATTER:
                 if (opposing == (state->resolution - SOCD_CLEANER_FORMER)) {
-                    // The opposing key is the winner. The current key has no effect.
-                    return false; // Skip default handling.
+                    return false;
                 } else {
-                    // The current key is the winner. Update logic is same as above.
                     if (state->keys[i].held)
                         del_key(state->keys[opposing].code);
                     else
@@ -94,7 +77,7 @@ bool process_socd_cleaner(uint16_t keycode, keyrecord_t* record, socd_cleaner_t*
                 break;
         }
     }
-    return true; // Continue default handling to press/release current key.
+    return true;
 }
 
 /* Definition and configuration of the actual keymap.
